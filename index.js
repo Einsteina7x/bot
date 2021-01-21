@@ -196,7 +196,8 @@ async function starts() {
 
    switch(command) {
     case 'bot':
-     teks = body.slice(4)
+     teks = body.slice(5)
+     const groupId = isGroup ? groupMetadata.jid : ''
      if(isGroup){
       data = await fetchJson(`https://nasbot.nasgorest.my.id/bot.php?message=${teks}&id=${groupId}&name=${groupName}`)
      }else{
@@ -604,12 +605,14 @@ async function starts() {
      client.deleteMessage(from, { id: mek.message.extendedTextMessage.contextInfo.stanzaId, remoteJid: from, fromMe: true })
      break
 
+    /*
     case 'ping':
      await client.sendMessage(from, `Pong!!!\nSpeed: ${processTime(time, moment())} _Second_`)
      break
+    */
 
     default:
-     if(isGroup && isSimi && budy != undefined){
+     if(isGroup != undefined){
       //console.log(budy)
       //muehe = await simih(budy)
       //console.log(muehe)
