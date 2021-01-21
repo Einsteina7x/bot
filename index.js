@@ -83,7 +83,7 @@ async function starts() {
   if(!welkom.includes(anu.jid)) return
   try {
    const mdata = await client.groupMetadata(anu.jid)
-   console.log(anu)
+   //console.log(anu)
    if(anu.action == 'add'){
     num = anu.participants[0]
     try {
@@ -168,7 +168,6 @@ async function starts() {
    const isGroupAdmins = groupAdmins.includes(sender) || false
    const isWelkom = isGroup ? welkom.includes(from) : false
    const isOwner = ownerNumber.includes(sender)
-   const isUser = user.includes(sender)
 
    const isUrl = (url) => {
     return url.match(new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)/, 'gi'))
@@ -612,7 +611,7 @@ async function starts() {
     default:
      if(isGroup && isSimi && budy != undefined){
       //console.log(budy)
-      muehe = await simih(budy)
+      //muehe = await simih(budy)
       //console.log(muehe)
       //reply(muehe)
      }else{
