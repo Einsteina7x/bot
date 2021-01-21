@@ -203,9 +203,7 @@ async function starts() {
      }else{
       data = await fetchJson(`https://nasbot.nasgorest.my.id/bot.php?message=${teks}&id=${sender}`)
      }
-     if(data.reply) return reply(data.reply)
-     hasil = ${data.reply}
-     reply(hasil)
+     reply(data.reply)
      break
 
     case 'timer':
