@@ -9,7 +9,15 @@ const {
  MessageType,
  Presence,
  Mimetype,
- GroupSettingChange
+ GroupSettingChange,
+ MessageOptions,
+ WALocationMessage,
+ WA_MESSAGE_STUB_TYPES,
+ ReconnectMode,
+ ProxyAgent,
+ waChatKey,
+ mentionedJid,
+ processTime
 } = require('@adiwajshing/baileys')
 
 /******BEGIN OF FILE INPUT******/
@@ -33,8 +41,8 @@ const speed = require('performance-now')
 
 /******BEGIN OF JSON INPUT******/
 const welkom = JSON.parse(fs.readFileSync('./database/json/welkom.json'))
-const infobanned = JSON.parse(fs.readFileSync('./database/json/infobanned.json'))
-const bcgrup = JSON.parse(fs.readFileSync('./database/json/bcgrup.json'))
+const banned = JSON.parse(fs.readFileSync('./database/json/banned.json'))
+const grup = JSON.parse(fs.readFileSync('./database/json/grup.json'))
 /******END OF JSON INPUT******/
 
 /******LOAD OF VCARD INPUT******/
@@ -51,18 +59,6 @@ prefix = '.'
 blocked = []
 
 /******BEGIN OF FUNCTIONS INPUT******/
-function kyun(seconds){
- function pad(s){
-  return (s < 10 ? '0' : '') + s;
- }
- var hours = Math.floor(seconds / (60*60));
- var minutes = Math.floor(seconds % (60*60) / 60);
- var seconds = Math.floor(seconds % 60);
-
- //return pad(hours) + ':' + pad(minutes) + ':' + pad(seconds)
- return `${pad(hours)} Jam ${pad(minutes)} Menit ${pad(seconds)} Detik`
-}
-
 async function starts() {
  const client = new WAConnection()
  client.logger.level = 'warn'
@@ -103,7 +99,7 @@ async function starts() {
      */
      client.sendMessage(mdata.id, teks.trim(), MessageType.text, {contextInfo: {"mentionedJid": [num]}})
     }else{
-     if(infobanned.includes(num)){
+     if(banned.includes(num)){
       client.groupRemove(mdata.id, [num])
      }else{
       /*
@@ -138,7 +134,7 @@ async function starts() {
      */
      client.sendMessage(mdata.id, teks.trim(), MessageType.text, {contextInfo: {"mentionedJid": [num]}})
     }else{
-     if(!infobanned.includes(num)){
+     if(!banned.includes(num)){
       /*
       try {
        ppimg = await client.getProfilePicture(`${num.split('@')[0]}@c.us`)
@@ -256,7 +252,7 @@ async function starts() {
      break
 
     case 'banned':
-     if(groupId != '6285790784469-1611314147@g.us')
+     if(groupId != '6285790784469-1611314147@g.us') return reply('[❗] Fitur ini masih dalam tahap pengembangan! ❌')
      if(!isGroup) return reply(mess.only.group)
      if(!isOwner) return reply(mess.only.ownerB)
      if(mek.message.extendedTextMessage === undefined || mek.message.extendedTextMessage === null) return reply('Tag target yang ingin di banned!')
@@ -265,47 +261,40 @@ async function starts() {
       teks = 'Perintah diterima, membanned :/n'
       for(let _ of mentioned){
        teks += `@${_.split('@')[0]}\n`
-       infobanned.push(_)
-       fs.writeFileSync('./database/json/infobanned.json', JSON.stringify(infobanned))
+       banned.push(_)
+       fs.writeFileSync('./database/json/banned.json', JSON.stringify(banned))
       }
       teks += `dari grup *${groupName}*`
       mentions(teks, mentioned, true)
       client.groupRemove(from, mentioned)
      }else{
       mentions(`Perintah diterima, membanned: @${mentioned[0].split('@')[0]} dari grup *${groupName}*`, mentioned, true)
-      infobanned.push(mentioned[0])
-      fs.writeFileSync('./database/json/infobanned.json', JSON.stringify(infobanned))
+      banned.push(mentioned[0])
+      fs.writeFileSync('./database/json/banned.json', JSON.stringify(banned))
       client.groupRemove(from, mentioned)
      }
      break
 
     case 'unbanned':
-     if(groupId != '6285790784469-1611314147@g.us')
+     if(groupId != '6285790784469-1611314147@g.us') return reply('[❗] Fitur ini masih dalam tahap pengembangan! ❌')
      if(!isGroup) return reply(mess.only.group)
      if(!isOwner) return reply(mess.only.ownerB)
      if(args.length < 1) return reply('Nomernya berapa kak?')
      if(args[0].startsWith('08')) return reply('Gunakan kode negara kak.')
      num = `${args[0].replace('+', '')}@s.whatsapp.net`
-     for(i = 0; i < infobanned.length; i++){
-      if(infobanned[i] == num){
-       infobannedget = i
+     for(i = 0; i < banned.length; i++){
+      if(banned[i] == num){
+       bannedget = i
       }
      }
-     infobanned.splice(infobannedget, 1)
-     fs.writeFileSync('./database/json/infobanned.json', JSON.stringify(infobanned))
-     reply(`Perintah diterima, +${num.split('@')[0]} berhasil di unbanned dari grup *${groupName}.`)
+     if(bannedget){
+      banned.splice(bannedget, 1)
+      fs.writeFileSync('./database/json/infobanned.json', JSON.stringify(banned))
+      reply(`Perintah diterima, +${num.split('@')[0]} berhasil di unbanned dari grup *${groupName}.`)
+     }else{
+      reply(`[❗] ${num.split('@')[0]} belum di banned dari grup *${groupName}* sebelumnya. ❌`)
+     }
      break
-/*
-    case 'timer':
-     if(args[1]=="detik"){ var timer = args[0]+"000"
-     }else if(args[1]=="menit"){ var timer = args[0]+"0000"
-     }else if(args[1]=="jam"){ var timer = args[0]+"00000"
-     }else{ return reply("*pilih:*\ndetik\nmenit\njam")}
-     setTimeout( () => {
-      reply("Waktu habis")
-     }, timer)
-     break
-*/
 
     case 'demote':
      if(!isGroup) return reply(mess.only.group)
@@ -417,20 +406,6 @@ async function starts() {
      buffer = await getBuffer(anu.result)
      client.sendMessage(from, buffer, video, {mimetype: 'video/mp4', filename: `${anu.title}.mp4`, quoted: mek})
      break
-
-/*
-    case 'testime':
-     setTimeout( () => {
-      client.sendMessage(from, 'Waktu habis:v', text) // ur cods
-     }, 10000) // 1000 = 1s,
-     setTimeout( () => {
-      client.sendMessage(from, '5 Detik lagi', text) // ur cods
-     }, 5000) // 1000 = 1s,
-     setTimeout( () => {
-      client.sendMessage(from, '10 Detik lagi', text) // ur cods
-     }, 0) // 1000 = 1s,
-     break
-*/
 
     case 'getidgroup':
      reply(groupId)
@@ -709,9 +684,9 @@ async function starts() {
      client.deleteMessage(from, { id: mek.message.extendedTextMessage.contextInfo.stanzaId, remoteJid: from, fromMe: true })
      break
 
-    //case 'ping':
-     //await client.sendMessage(from, `Pong!!!\nSpeed: ${processTime(time, moment())} _Second_`)
-     //break
+    case 'ping':
+     await client.sendMessage(from, `Pong!!!\nSpeed: ${processTime(time, moment())} _Second_`)
+     break
 
     default:
      if(isGroup){
