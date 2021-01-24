@@ -464,23 +464,6 @@ async function starts() {
      break
 
 /*
-    case 'bcgrup':
-     if(!isOwner) return reply(mess.only.ownerB)
-     if(isMedia && !mek.message.videoMessage || isQuotedImage){
-      const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
-      buff = await client.downloadMediaMessage(encmedia)
-      for(let _ of bcgrup){
-       client.sendMessage(_.jid, buff, image, {caption: `${body.slice(6)}`})
-      }
-      reply('Sukses broadcast group 1')
-     }else{
-      for(let _ of bcgrup){
-       sendMess(_.jid, `${body.slice(6)}`)
-      }
-      reply('Suksess broadcast group 2')
-     }
-     break
-
     case 'bcgc':
      client.updatePresence(from, Presence.composing) 
      if(!isOwner) return reply(mess.only.ownerB)
@@ -626,18 +609,18 @@ async function starts() {
       await ffmpeg(`./${media}`)
       .input(media)
       .on('start', function (cmd){
-       //console.log(`Started : ${cmd}`)
+       console.log(`Started : ${cmd}`)
       })
       .on('error', function (err){
-       //console.log(`Error : ${err}`)
-       fs.unlinkSync(media)
+       console.log(`Error : ${err}`)
+       //fs.unlinkSync(media)
        reply(mess.error.stick)
       })
       .on('end', function (){
-       //console.log('Finish')
+       console.log('Finish')
        client.sendMessage(from, fs.readFileSync(ran), sticker, {quoted: mek})
-       fs.unlinkSync(media)
-       fs.unlinkSync(ran)
+       //fs.unlinkSync(media)
+       //fs.unlinkSync(ran)
       })
       .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
       .toFormat('webp')
@@ -650,20 +633,20 @@ async function starts() {
       await ffmpeg(`./${media}`)
       .inputFormat(media.split('.')[1])
       .on('start', function (cmd){
-       //console.log(`Started : ${cmd}`)
+       console.log(`Started : ${cmd}`)
       })
       .on('error', function (err){
-       //console.log(`Error : ${err}`)
-       fs.unlinkSync(media)
+       console.log(`Error : ${err}`)
+       //fs.unlinkSync(media)
        tipe = media.endsWith('.mp4') ? 'video' : 'gif'
        reply(`❌ Gagal, pada saat mengkonversi ${tipe} ke stiker`)
       })
       .on('end', function (){
-       //console.log('Finish')
+       console.log('Finish')
        buff = fs.readFileSync(ran)
        client.sendMessage(from, buff, sticker)
-       fs.unlinkSync(media)
-       fs.unlinkSync(ran)
+       //fs.unlinkSync(media)
+       //fs.unlinkSync(ran)
       })
       .addOutputOptions([`-vcodec`,`libwebp`,`-vf`,`scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`])
       .toFormat('webp')
