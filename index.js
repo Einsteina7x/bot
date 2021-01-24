@@ -33,6 +33,8 @@ const speed = require('performance-now')
 
 /******BEGIN OF JSON INPUT******/
 const welkom = JSON.parse(fs.readFileSync('./database/json/welkom.json'))
+const infobanned = JSON.parse(fs.readFileSync('./database/json/infobanned.json'))
+const bcgrup = JSON.parse(fs.readFileSync('./database/json/bcgrup.json'))
 /******END OF JSON INPUT******/
 
 /******LOAD OF VCARD INPUT******/
@@ -86,24 +88,72 @@ async function starts() {
    //console.log(anu)
    if(anu.action == 'add'){
     num = anu.participants[0]
-    try {
-     ppimg = await client.getProfilePicture(`${anu.participants[0].split('@')[0]}@c.us`)
-    }catch{
-     ppimg = 'https://i0.wp.com/www.gambarunik.id/wp-content/uploads/2019/06/Top-Gambar-Foto-Profil-Kosong-Lucu-Tergokil-.jpg'
+    if(mdata.id != '6285790784469-1611314147@g.us'){
+     /*
+     try {
+      ppimg = await client.getProfilePicture(`${anu.participants[0].split('@')[0]}@c.us`)
+     }catch{
+      ppimg = 'https://assets.nasgorest.my.id/img/logo-potumnesia-v2.2.png'
+     }
+     */
+     teks = `Halo @${num.split('@')[0]}\nSelamat datang di group *${mdata.subject}*, jangan lupa intro\nIGN: \nNama: \nGender: `
+     /*
+     let buff = await getBuffer(ppimg)
+     client.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
+     */
+     client.sendMessage(mdata.id, teks.trim(), MessageType.text, {contextInfo: {"mentionedJid": [num]}})
+    }else{
+     if(infobanned.includes(num)){
+      client.groupRemove(mdata.id, [num])
+     }else{
+      /*
+      try {
+       ppimg = await client.getProfilePicture(`${anu.participants[0].split('@')[0]}@c.us`)
+      }catch{
+       ppimg = 'https://assets.nasgorest.my.id/img/logo-potumnesia-v2.2.png'
+      }
+      */
+      teks = `Halo @${num.split('@')[0]}\nSelamat datang di group *${mdata.subject}*, jangan lupa intro\nIGN: \nNama: \nGender: `
+      /*
+      let buff = await getBuffer(ppimg)
+      client.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
+      */
+      client.sendMessage(mdata.id, teks.trim(), MessageType.text, {contextInfo: {"mentionedJid": [num]}})
+     }
     }
-    teks = `Halo @${num.split('@')[0]}\nSelamat datang di group *${mdata.subject}*`
-    let buff = await getBuffer(ppimg)
-    client.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
    }else if(anu.action == 'remove'){
     num = anu.participants[0]
-    try {
-     ppimg = await client.getProfilePicture(`${num.split('@')[0]}@c.us`)
-    }catch{
-     ppimg = 'https://i0.wp.com/www.gambarunik.id/wp-content/uploads/2019/06/Top-Gambar-Foto-Profil-Kosong-Lucu-Tergokil-.jpg'
+    if(mdata.id != '6285790784469-1611314147@g.us'){
+     /*
+     try {
+      ppimg = await client.getProfilePicture(`${num.split('@')[0]}@c.us`)
+     }catch{
+      ppimg = 'https://assets.nasgorest.my.id/img/logo-potumnesia-v2.2.png'
+     }
+     */
+     teks = `Sayonara @${num.split('@')[0]} 👋`
+     /*
+     let buff = await getBuffer(ppimg)
+     client.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
+     */
+     client.sendMessage(mdata.id, teks.trim(), MessageType.text, {contextInfo: {"mentionedJid": [num]}})
+    }else{
+     if(!infobanned.includes(num)){
+      /*
+      try {
+       ppimg = await client.getProfilePicture(`${num.split('@')[0]}@c.us`)
+      }catch{
+       ppimg = 'https://assets.nasgorest.my.id/img/logo-potumnesia-v2.2.png'
+      }
+      */
+      teks = `Sayonara @${num.split('@')[0]} 👋`
+      /*
+      let buff = await getBuffer(ppimg)
+      client.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
+      */
+      client.sendMessage(mdata.id, teks.trim(), MessageType.text, {contextInfo: {"mentionedJid": [num]}})
+     }
     }
-    teks = `Sayonara @${num.split('@')[0]}👋`
-    let buff = await getBuffer(ppimg)
-    client.sendMessage(mdata.id, buff, MessageType.image, {caption: teks, contextInfo: {"mentionedJid": [num]}})
    }
   }catch (e){
    console.log('Error : %s', color(e, 'red'))
@@ -161,7 +211,7 @@ async function starts() {
    const sender = isGroup ? mek.participant : mek.key.remoteJid
    const groupMetadata = isGroup ? await client.groupMetadata(from) : ''
    const groupName = isGroup ? groupMetadata.subject : ''
-   const groupId = isGroup ? groupMetadata.jid : ''
+   const groupId = isGroup ? groupMetadata.id : ''
    const groupMembers = isGroup ? groupMetadata.participants : ''
    const groupAdmins = isGroup ? getGroupAdmins(groupMembers) : ''
    const isBotGroupAdmins = groupAdmins.includes(botNumber) || false
@@ -197,15 +247,55 @@ async function starts() {
    switch(command) {
     case 'bot':
      teks = body.slice(5)
-     const groupId = isGroup ? groupMetadata.jid : ''
      if(isGroup){
-      data = await fetchJson(`https://nasbot.nasgorest.my.id/bot.php?message=${teks}&id=${groupId}&name=${groupName}`)
+      data = await fetchJson('https://nasbot.nasgorest.my.id/bot.php?message=' + teks + '&id=' + groupId.split('@')[0] + '&name=' + groupName)
      }else{
-      data = await fetchJson(`https://nasbot.nasgorest.my.id/bot.php?message=${teks}&id=${sender}`)
+      data = await fetchJson('https://nasbot.nasgorest.my.id/bot.php?message=' + teks + '&id=' + sender)
      }
-     reply(data.reply)
+     if(data.reply){ reply(data.reply) }
      break
 
+    case 'banned':
+     if(groupId != '6285790784469-1611314147@g.us')
+     if(!isGroup) return reply(mess.only.group)
+     if(!isOwner) return reply(mess.only.ownerB)
+     if(mek.message.extendedTextMessage === undefined || mek.message.extendedTextMessage === null) return reply('Tag target yang ingin di banned!')
+     mentioned = mek.message.extendedTextMessage.contextInfo.mentionedJid
+     if(mentioned.length > 1){
+      teks = 'Perintah diterima, membanned :/n'
+      for(let _ of mentioned){
+       teks += `@${_.split('@')[0]}\n`
+       infobanned.push(_)
+       fs.writeFileSync('./database/json/infobanned.json', JSON.stringify(infobanned))
+      }
+      teks += `dari grup *${groupName}*`
+      mentions(teks, mentioned, true)
+      client.groupRemove(from, mentioned)
+     }else{
+      mentions(`Perintah diterima, membanned: @${mentioned[0].split('@')[0]} dari grup *${groupName}*`, mentioned, true)
+      infobanned.push(mentioned[0])
+      fs.writeFileSync('./database/json/infobanned.json', JSON.stringify(infobanned))
+      client.groupRemove(from, mentioned)
+     }
+     break
+
+    case 'unbanned':
+     if(groupId != '6285790784469-1611314147@g.us')
+     if(!isGroup) return reply(mess.only.group)
+     if(!isOwner) return reply(mess.only.ownerB)
+     if(args.length < 1) return reply('Nomernya berapa kak?')
+     if(args[0].startsWith('08')) return reply('Gunakan kode negara kak.')
+     num = `${args[0].replace('+', '')}@s.whatsapp.net`
+     for(i = 0; i < infobanned.length; i++){
+      if(infobanned[i] == num){
+       infobannedget = i
+      }
+     }
+     infobanned.splice(infobannedget, 1)
+     fs.writeFileSync('./database/json/infobanned.json', JSON.stringify(infobanned))
+     reply(`Perintah diterima, +${num.split('@')[0]} berhasil di unbanned dari grup *${groupName}.`)
+     break
+/*
     case 'timer':
      if(args[1]=="detik"){ var timer = args[0]+"000"
      }else if(args[1]=="menit"){ var timer = args[0]+"0000"
@@ -215,6 +305,7 @@ async function starts() {
       reply("Waktu habis")
      }, timer)
      break
+*/
 
     case 'demote':
      if(!isGroup) return reply(mess.only.group)
@@ -225,19 +316,18 @@ async function starts() {
      if(mentioned.length > 1){
       teks = ''
       for(let _ of mentioned){
-       teks += `𝐏𝐞𝐫𝐢𝐧𝐭𝐚𝐡 𝐝𝐢𝐭𝐞𝐫𝐢𝐦𝐚, 𝐦𝐞𝐧𝐮𝐫𝐮𝐧𝐤𝐚𝐧 𝐣𝐚𝐝𝐢 𝐚𝐝𝐦𝐢𝐧 𝐠𝐫𝐨𝐮𝐩 :\n`
+       teks += `𝐏𝐞𝐫𝐢𝐧𝐭𝐚𝐡 𝐝𝐢𝐭𝐞𝐫𝐢𝐦𝐚, 𝐦𝐞𝐧𝐮𝐫𝐮𝐧𝐤𝐚𝐧 𝐝𝐚𝐫𝐢 𝐚𝐝𝐦𝐢𝐧 𝐠𝐫𝐨𝐮𝐩 :\n`
        teks += `@_.split('@')[0]`
       }
       mentions(teks, mentioned, true)
       client.groupDemoteAdmin(from, mentioned)
      }else{
-      mentions(`𝐏𝐞𝐫𝐢𝐧𝐭𝐚𝐡 𝐝𝐢𝐭𝐞𝐫𝐢𝐦𝐚, 𝐦𝐞𝐧𝐮𝐫𝐮𝐧𝐤𝐚𝐧 @${mentioned[0].split('@')[0]}\n 𝐣𝐚𝐝𝐢 𝐚𝐝𝐦𝐢𝐧 𝐠𝐫𝐨𝐮𝐩 _*${groupMetadata.subject}*_`, mentioned, true)
+      mentions(`𝐏𝐞𝐫𝐢𝐧𝐭𝐚𝐡 𝐝𝐢𝐭𝐞𝐫𝐢𝐦𝐚, 𝐦𝐞𝐧𝐮𝐫𝐮𝐧𝐤𝐚𝐧 @${mentioned[0].split('@')[0]}\n 𝐝𝐚𝐫𝐢 𝐚𝐝𝐦𝐢𝐧 𝐠𝐫𝐨𝐮𝐩 _*${groupMetadata.subject}*_`, mentioned, true)
       client.groupDemoteAdmin(from, mentioned)
      }
      break
 
     case 'promote':
-     client.updatePresence(from, Presence.composing) 
      if(!isGroup) return reply(mess.only.group)
      if(!isGroupAdmins) return reply(mess.only.admin)
      if(!isBotGroupAdmins) return reply(mess.only.Badmin)
@@ -258,9 +348,8 @@ async function starts() {
 
     case 'wa.me':
     case 'wame':
-     client.updatePresence(from, Presence.composing) 
      options = {
-      text: `「 *SELF WHATSAPP* 」\n\n_Request by_ : *@${sender.split("@s.whatsapp.net")[0]}\n\nYour link WhatsApp : *https://wa.me/${sender.split("@s.whatsapp.net")[0]}*\n*Or ( / )*\n*https://api.whatsapp.com/send?phone=${sender.split("@")[0]}*`,
+      text: `「 *SELF WHATSAPP* 」\n\n_Request by_ : *@${sender.split("@s.whatsapp.net")[0]}\n\nYour link WhatsApp : *https://wa.me/${sender.split("@s.whatsapp.net")[0]}*\n*Or*\n*Or ( / )*\n*https://api.whatsapp.com/send?phone=${sender.split("@")[0]}*`,
       contextInfo: { mentionedJid: [sender] }
      }
      client.sendMessage(from, options, text, { quoted: mek } )
@@ -275,10 +364,9 @@ async function starts() {
      break
 
     case 'notif':
-     client.updatePresence(from, Presence.composing) 
      if(!isGroup) return reply(mess.only.group)
      if(!isGroupAdmins) return reply(mess.only.admin)
-     teks = body.slice(6)
+     teks = body.slice(7)
      group = await client.groupMetadata(from);
      member = group['participants']
      jids = [];
@@ -293,8 +381,17 @@ async function starts() {
      await client.sendMessage(from, options, text)
      break
 
+/* Setelah digunakan, WA langsung error
+    case 'bcgrup':
+     if(!isOwner) return reply(mess.only.ownerB)
+     teks = body.slice(8)
+     for(i = 0; i < bcgrup.length; i++){
+      client.sendMessage(bcgrup[i], teks, text)
+     }
+     break
+*/
+
     case 'infonomor':
-     client.updatePresence(from, Presence.composing) 
      if (args.length < 1) return reply(`Masukan Nomor\nContoh : ${prefix}infonomor 0812345678`)
      data = await fetchJson(`https://docs-jojo.herokuapp.com/api/infonomor?no=${body.slice(11)}`)
      if (data.error) return reply(data.error)
@@ -321,6 +418,7 @@ async function starts() {
      client.sendMessage(from, buffer, video, {mimetype: 'video/mp4', filename: `${anu.title}.mp4`, quoted: mek})
      break
 
+/*
     case 'testime':
      setTimeout( () => {
       client.sendMessage(from, 'Waktu habis:v', text) // ur cods
@@ -332,9 +430,13 @@ async function starts() {
       client.sendMessage(from, '10 Detik lagi', text) // ur cods
      }, 0) // 1000 = 1s,
      break
+*/
+
+    case 'getidgroup':
+     reply(groupId)
+     break
 
     case 'setprefix':
-     client.updatePresence(from, Presence.composing) 
      if(args.length < 1) return
      if(!isOwner) return reply(mess.only.ownerB)
      prefix = args[0]
@@ -342,17 +444,41 @@ async function starts() {
      break
 
     case 'tagall':
-     client.updatePresence(from, Presence.composing) 
      if(!isGroup) return reply(mess.only.group)
      if(!isGroupAdmins) return reply(mess.only.admin)
+     if(groupId != '6285790784469-1588930032@g.us') return reply('[❗] Fitur ini khusus Premium. ❌') 
      members_id = []
      teks = (args.length > 1) ? body.slice(8).trim() : ''
-     teks += `  Total : ${groupMembers.length}\n`
      for(let mem of groupMembers){
-      teks += `╠➥ @${mem.jid.split('@')[0]}\n`
+      teks += `╿➥ @${mem.jid.split('@')[0]}\n`
       members_id.push(mem.jid)
      }
-     mentions('╔══✪〘 Mention All 〙✪══\n╠➥'+teks+'╚═〘 - - - - 〙', members_id, true)
+     daftar = '╭════•›「 Daftar Member Grup 」\n'
+            + '╿\n'
+            + '╿➥ Total: ' + groupMembers. length + '\n'
+            + '╿\n'
+            + teks
+            + '╿\n'
+            + '╰═══════════════════════════'
+     mentions(daftar, members_id, true)
+     break
+
+/*
+    case 'bcgrup':
+     if(!isOwner) return reply(mess.only.ownerB)
+     if(isMedia && !mek.message.videoMessage || isQuotedImage){
+      const encmedia = isQuotedImage ? JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo : mek
+      buff = await client.downloadMediaMessage(encmedia)
+      for(let _ of bcgrup){
+       client.sendMessage(_.jid, buff, image, {caption: `${body.slice(6)}`})
+      }
+      reply('Sukses broadcast group 1')
+     }else{
+      for(let _ of bcgrup){
+       sendMess(_.jid, `${body.slice(6)}`)
+      }
+      reply('Suksess broadcast group 2')
+     }
      break
 
     case 'bcgc':
@@ -365,14 +491,15 @@ async function starts() {
       for(let _ of groupMembers){
        client.sendMessage(_.jid, buff, image, {caption: `*「 BC GROUP 」*\n*Group* : ${groupName}\n\n${body.slice(6)}`})
       }
-      reply('')
+      reply('Sukses broadcast group')
      }else{
-     for(let _ of groupMembers){
-      sendMess(_.jid, `*「 BC GROUP 」*\n*Group* : ${groupName}\n\n${body.slice(6)}`)
+      for(let _ of groupMembers){
+       sendMess(_.jid, `*「 BC GROUP 」*\n*Group* : ${groupName}\n\n${body.slice(6)}`)
+      }
+      reply('Sukses broadcast group')
      }
-     reply('Suksess broadcast group')
-    }
-    break
+     break
+*/
 
     case 'leave':
      if (!isGroup) return reply(mess.only.group)
@@ -386,16 +513,17 @@ async function starts() {
      }, 0)
      break
 
+/*
     case 'igstalk':
      hmm = await fetchJson(`https://freerestapi.herokuapp.com/api/v1/igs?u=${body.slice(9)}`)
      buffer = await getBuffer(hmm.data.profilehd)
      hasil = `Fullname : ${hmm.data.fullname}\npengikut : ${hmm.data.follower}\nMengikuti : ${hmm.data.following}\nPrivate : ${hmm.data.private}\nVerified : ${hmm.data.verified}\nbio : ${hmm.data.bio}`
      client.sendMessage(from, buffer, image, {quoted: mek, caption: hasil})
      break
+ */
 
     case 'ownergrup':
     case 'ownergroup':
-     client.updatePresence(from, Presence.composing) 
      options = {
       text: `Owner Group ini adalah : @${from.split("-")[0]}`,
       contextInfo: { mentionedJid: [from] }
@@ -404,12 +532,11 @@ async function starts() {
      break
 
     case 'add':
-     client.updatePresence(from, Presence.composing) 
      if(!isGroup) return reply(mess.only.group)
      if(!isGroupAdmins) return reply(mess.only.admin)
      if(!isBotGroupAdmins) return reply(mess.only.Badmin)
      if(args.length < 1) return reply('Yang mau di add jin ya?')
-     if(args[0].startsWith('08')) return reply('Gunakan kode negara mas')
+     if(args[0].startsWith('08')) return reply('Gunakan kode negara kak.')
      try {
       num = `${args[0].replace(/ /g, '')}@s.whatsapp.net`
       client.groupAdd(from, [num])
@@ -420,7 +547,6 @@ async function starts() {
      break
 
     case 'kick':
-     client.updatePresence(from, Presence.composing) 
      if(!isGroup) return reply(mess.only.group)
      if(!isGroupAdmins) return reply(mess.only.admin)
      if(!isBotGroupAdmins) return reply(mess.only.Badmin)
@@ -464,7 +590,6 @@ async function starts() {
      break
 
     case 'closegc':
-     client.updatePresence(from, Presence.composing) 
      if(!isGroup) return reply(mess.only.group)
      if(!isGroupAdmins) return reply(mess.only.admin)
      if(!isBotGroupAdmins) return reply(mess.only.Badmin)
@@ -479,7 +604,6 @@ async function starts() {
 
     case 'opengc':
     case 'bukagc':
-     client.updatePresence(from, Presence.composing) 
      if(!isGroup) return reply(mess.only.group)
      if(!isGroupAdmins) return reply(mess.only.admin)
      if(!isBotGroupAdmins) return reply(mess.only.Badmin)
@@ -548,7 +672,6 @@ async function starts() {
      break
 
     case 'toimg':
-     client.updatePresence(from, Presence.composing)
      if(!isQuotedSticker) return reply('❌ reply stickernya um ❌')
      reply(mess.wait)
      encmedia = JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo
@@ -564,7 +687,6 @@ async function starts() {
      break
 
     case 'tomp3':
-     client.updatePresence(from, Presence.composing)
      if(!isQuotedVideo) return reply('❌ reply videonya um ❌')
      reply(mess.wait)
      encmedia = JSON.parse(JSON.stringify(mek).replace('quotedM','m')).message.extendedTextMessage.contextInfo
@@ -587,11 +709,11 @@ async function starts() {
       if(isWelkom) return reply('fitur sudah aktif')
       welkom.push(from)
       fs.writeFileSync('./database/json/welkom.json', JSON.stringify(welkom))
-      reply('❬ SUCCSESS ❭ mengaktifkan fitur welcome di group ini')
+      reply('❬ SUCCESS ❭ mengaktifkan fitur welcome di group ini')
      }else if (Number(args[0]) === 0){
       welkom.splice(from, disable)
       fs.writeFileSync('./database/json/welkom.json', JSON.stringify(welkom))
-      reply('❬ SUCCSESS ❭ menonaktifkan fitur welcome di group ini')
+      reply('❬ SUCCESS ❭ menonaktifkan fitur welcome di group ini')
      }else{
       reply('ketik 1 untuk mengaktifkan, 0 untuk menonaktifkan fitur')
      }
@@ -604,14 +726,17 @@ async function starts() {
      client.deleteMessage(from, { id: mek.message.extendedTextMessage.contextInfo.stanzaId, remoteJid: from, fromMe: true })
      break
 
-    /*
-    case 'ping':
-     await client.sendMessage(from, `Pong!!!\nSpeed: ${processTime(time, moment())} _Second_`)
-     break
-    */
+    //case 'ping':
+     //await client.sendMessage(from, `Pong!!!\nSpeed: ${processTime(time, moment())} _Second_`)
+     //break
 
     default:
-     if(isGroup != undefined){
+     if(isGroup){
+      if(budy)
+      console.log('ID Grup: '+groupId+'\nNama Grup: '+groupName+'\nFrom: '+sender+'\nChat: '+budy+'\n\n')
+      if(!bcgrup.includes(groupId))
+      bcgrup.push(groupId)
+      fs.writeFileSync('./database/json/bcgrup.json', JSON.stringify(bcgrup))
       //console.log(budy)
       //muehe = await simih(budy)
       //console.log(muehe)
